@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffee Research — BRM Questionnaire</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --ink:#1C1009;
+  --espresso:#2E1503;
+  --roast:#5C2D0E;
+  --caramel:#B5651D;
+  --latte:#D4956A;
+  --cream:#F9EFE3;
+  --foam:#FFFCF8;
+  --steam:rgba(212,149,106,0.15);
+  --border:rgba(92,45,14,0.14);
+  --muted:#8A6347;
+  --success:#1E5C3A;
+  --err:#9B2335;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  font-family:'Outfit',sans-serif;
+  background:var(--cream);
+  min-height:100vh;
+  color:var(--ink);
+  overflow-x:hidden;
+}
+
+
+
+/* ─── HERO ─── */
+.hero{
+  background:var(--espresso);
+  padding:4rem 2rem 3rem;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse 60% 80% at 20% 50%, rgba(92,45,14,0.6) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 30%, rgba(181,101,29,0.2) 0%, transparent 60%);
+}
+.hero-ring{
+  position:relative;
+  width:80px;height:80px;
+  margin:0 auto 1.5rem;
+  border-radius:50%;
+  border:2px solid rgba(212,149,106,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;
+  animation:float 4s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.hero-eyebrow{
+  position:relative;
+  font-size:11px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--latte);
+  font-weight:500;
+  margin-bottom:0.8rem;
+}
+.hero h1{
+  position:relative;
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2rem,5vw,3.2rem);
+  font-weight:700;
+  color:var(--cream);
+  line-height:1.1;
+  margin-bottom:0.8rem;
+}
+.hero h1 em{color:var(--latte);font-style:italic}
+.hero p{
+  position:relative;
+  color:rgba(249,239,227,0.6);
+  font-size:14px;
+  font-weight:300;
+  max-width:440px;
+  margin:0 auto;
+  line-height:1.7;
+}
+.hero-divider{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  justify-content:center;
+  margin-top:2rem;
+}
+.hero-divider span{color:var(--latte);font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.hero-divider::before,.hero-divider::after{
+  content:'';
+  width:60px;height:1px;
+  background:rgba(212,149,106,0.3);
+}
+
+/* ─── PROGRESS ─── */
+.progress{
+  background:var(--roast);
+  padding:12px 24px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.progress-steps{
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.p-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:rgba(249,239,227,0.2);
+  transition:all 0.3s;
+}
+.p-dot.done{background:var(--latte)}
+.p-dot.active{background:var(--cream);transform:scale(1.3)}
+.p-label{
+  color:var(--cream);
+  font-size:13px;
+  font-weight:500;
+  margin-left:4px;
+}
+.p-bar-track{
+  flex:1;
+  height:3px;
+  background:rgba(255,255,255,0.1);
+  border-radius:2px;
+  overflow:hidden;
+}
+.p-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--caramel),var(--latte));
+  border-radius:2px;
+  transition:width 0.6s cubic-bezier(.4,0,.2,1);
+  width:0%;
+}
+.p-pct{color:var(--latte);font-size:12px;font-weight:600;white-space:nowrap}
+
+/* ─── CONTAINER ─── */
+.wrap{max-width:780px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+
+/* ─── STEPS ─── */
+.step{display:none}
+.step.active{display:block;animation:rise 0.45s cubic-bezier(.4,0,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.s-eyebrow{
+  font-size:10px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--caramel);
+  font-weight:600;
+  margin-bottom:6px;
+}
+.s-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.5rem,3vw,2.1rem);
+  font-weight:700;
+  color:var(--espresso);
+  margin-bottom:4px;
+}
+.s-sub{color:var(--muted);font-size:14px;margin-bottom:2rem;line-height:1.6}
+
+/* ─── CARD ─── */
+.card{
+  background:var(--foam);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:1.75rem 2rem;
+  margin-bottom:1.25rem;
+  box-shadow:0 2px 20px rgba(44,21,3,0.06);
+  transition:box-shadow 0.2s;
+}
+.card:hover{box-shadow:0 4px 32px rgba(44,21,3,0.10)}
+.card-label{
+  font-size:10px;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--caramel);
+  font-weight:600;
+  margin-bottom:1.2rem;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.card-label::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border);
+}
+
+/* ─── INPUTS ─── */
+.field{margin-bottom:1.2rem}
+.field:last-child{margin-bottom:0}
+.fl{
+  display:block;
+  font-size:12px;
+  font-weight:500;
+  color:var(--muted);
+  margin-bottom:6px;
+  letter-spacing:0.3px;
+}
+.fi{
+  width:100%;
+  padding:11px 14px;
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  font-family:'Outfit',sans-serif;
+  font-size:15px;
+  color:var(--ink);
+  background:#fff;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  outline:none;
+}
+.fi:focus{
+  border-color:var(--caramel);
+  box-shadow:0 0 0 3px rgba(181,101,29,0.1);
+}
+.fi.err{border-color:var(--err)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:520px){.g2{grid-template-columns:1fr}}
+
+/* ─── OPTION BUTTONS ─── */
+.opt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:2px}
+.opt{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 14px;
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  cursor:pointer;
+  font-size:13.5px;
+  color:var(--ink);
+  font-family:'Outfit',sans-serif;
+  text-align:left;
+  transition:all 0.2s;
+  line-height:1.3;
+}
+.opt:hover{border-color:var(--caramel);background:rgba(212,149,106,0.07)}
+.opt.sel{
+  border-color:var(--caramel);
+  background:rgba(181,101,29,0.08);
+  font-weight:500;
+  color:var(--espresso);
+}
+.opt .bub{
+  width:17px;height:17px;min-width:17px;
+  border-radius:50%;
+  border:2px solid var(--border);
+  transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0;
+}
+.opt.sel .bub{
+  background:var(--caramel);
+  border-color:var(--caramel);
+  font-size:9px;
+  color:#fff;
+}
+.opt.sel .bub::after{content:'✓'}
+
+/* ─── YES/NO ─── */
+.yn{display:flex;gap:10px}
+.yn-btn{
+  flex:1;padding:13px;border:1.5px solid var(--border);
+  border-radius:10px;background:#fff;
+  font-size:15px;font-family:'Outfit',sans-serif;
+  cursor:pointer;transition:all 0.2s;font-weight:500;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.yn-btn:hover{border-color:var(--caramel)}
+.yn-yes{border-color:#1E5C3A!important;background:#edf7f2!important;color:#1E5C3A!important}
+.yn-no{border-color:var(--err)!important;background:#fdf0f2!important;color:var(--err)!important}
+
+/* ─── LIKERT ─── */
+.lk{width:100%;border-collapse:collapse}
+.lk thead th{
+  font-size:10px;font-weight:600;color:var(--muted);
+  text-align:center;padding:8px 4px;
+  letter-spacing:0.5px;text-transform:uppercase;
+}
+.lk thead th:first-child{text-align:left;padding-left:0}
+.lk tbody tr{border-top:1px solid rgba(92,45,14,0.06)}
+.lk tbody tr:hover{background:rgba(212,149,106,0.04)}
+.lk td{padding:11px 6px;text-align:center;vertical-align:middle}
+.lk td:first-child{
+  text-align:left;font-size:13.5px;color:var(--ink);
+  padding-left:0;padding-right:12px;line-height:1.45;
+}
+.lk input[type=radio]{
+  width:18px;height:18px;
+  accent-color:var(--caramel);cursor:pointer;
+}
+
+/* ─── NAV ─── */
+.nav{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  margin-top:2.2rem;gap:12px;
+}
+.btn-back{
+  padding:11px 22px;
+  border:1.5px solid var(--border);
+  border-radius:10px;background:transparent;
+  font-family:'Outfit',sans-serif;font-size:14px;
+  color:var(--muted);cursor:pointer;transition:all 0.2s;
+}
+.btn-back:hover{border-color:var(--caramel);color:var(--caramel)}
+.btn-next{
+  padding:12px 30px;border:none;border-radius:10px;
+  background:var(--espresso);color:var(--cream);
+  font-family:'Outfit',sans-serif;font-size:15px;
+  font-weight:500;cursor:pointer;transition:all 0.2s;
+  display:flex;align-items:center;gap:8px;
+  position:relative;overflow:hidden;
+}
+.btn-next::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.06));
+}
+.btn-next:hover{background:var(--roast);transform:translateY(-1px);box-shadow:0 6px 20px rgba(44,21,3,0.2)}
+.btn-next:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ─── REVIEW ─── */
+.rv-section{margin-bottom:1.5rem}
+.rv-head{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--caramel);font-weight:600;margin-bottom:10px;
+  padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.rv-row{
+  display:flex;padding:7px 0;font-size:13.5px;
+  border-bottom:1px solid rgba(92,45,14,0.05);
+}
+.rv-key{color:var(--muted);min-width:140px;flex-shrink:0}
+.rv-val{color:var(--ink);font-weight:500}
+.rv-tag{
+  display:inline-block;
+  padding:2px 8px;border-radius:20px;
+  font-size:11px;font-weight:600;
+  margin:2px 3px 2px 0;
+}
+.rv-sa{background:#edf7f2;color:#1E5C3A}
+.rv-a{background:#eef4fb;color:#1a4f8a}
+.rv-n{background:#f5f3f0;color:#5a4e44}
+.rv-d{background:#fef3e7;color:#8a4c0e}
+.rv-sd{background:#fdf0f2;color:var(--err)}
+
+/* ─── SUCCESS ─── */
+.success{
+  text-align:center;padding:3.5rem 1rem;
+  animation:rise 0.5s ease;
+}
+.s-ring{
+  width:90px;height:90px;
+  border-radius:50%;border:2px solid var(--caramel);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.8rem;
+  font-size:2.5rem;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(181,101,29,0.3)}50%{box-shadow:0 0 0 12px rgba(181,101,29,0)}}
+.success h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.4rem;font-weight:700;
+  color:var(--espresso);margin-bottom:0.6rem;
+}
+.success p{
+  color:var(--muted);font-size:15px;line-height:1.7;
+  max-width:440px;margin:0 auto 0.6rem;
+}
+.s-email-chip{
+  display:inline-block;
+  background:rgba(181,101,29,0.1);
+  color:var(--caramel);
+  border:1px solid rgba(181,101,29,0.2);
+  border-radius:20px;
+  padding:5px 14px;
+  font-size:13px;
+  font-weight:500;
+  margin:0.5rem auto 1.8rem;
+}
+.success-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.s-btn{
+  padding:12px 24px;border-radius:10px;
+  font-family:'Outfit',sans-serif;font-size:14px;
+  font-weight:500;cursor:pointer;transition:all 0.2s;
+  display:inline-flex;align-items:center;gap:7px;
+  text-decoration:none;border:none;
+}
+.s-btn-primary{background:var(--espresso);color:var(--cream)}
+.s-btn-primary:hover{background:var(--roast);transform:translateY(-1px)}
+.s-btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--muted)}
+.s-btn-ghost:hover{border-color:var(--caramel);color:var(--caramel)}
+
+/* ─── TOAST ─── */
+.toast{
+  position:fixed;bottom:20px;right:20px;
+  padding:13px 18px;border-radius:12px;
+  font-size:13.5px;font-weight:500;z-index:9999;
+  opacity:0;transform:translateY(8px);
+  transition:all 0.3s;max-width:320px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.15);
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.e{background:#fdf0f2;color:var(--err);border:1px solid rgba(155,35,53,0.2)}
+.toast.s{background:#edf7f2;color:var(--success);border:1px solid rgba(30,92,58,0.2)}
+.toast.i{background:#eef4fb;color:#1a4f8a;border:1px solid rgba(26,79,138,0.2)}
+
+/* ─── FOOTER ─── */
+.s-btn-wa{background:#25D366;color:#fff;border:none;}
+.s-btn-wa:hover{background:#1da851;transform:translateY(-1px)}
+.wa-note{font-size:12px;color:var(--muted);margin-top:0.5rem;text-align:center;line-height:1.5}
+.form-footer{text-align:center;margin-top:3rem;font-size:12px;color:var(--muted);opacity:0.6;}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:600px){
+  .lk thead th{font-size:8px;padding:6px 2px}
+  .lk td:first-child{font-size:12.5px;min-width:120px}
+  .card{padding:1.25rem 1rem}
+  .hero{padding:3rem 1.5rem 2rem}
+}
+
+/* ─── SPINNER ─── */
+.spinner{
+  display:inline-block;width:16px;height:16px;
+  border:2px solid rgba(249,239,227,0.3);
+  border-top-color:var(--cream);
+  border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     HERO
+════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-ring">☕</div>
+  <div class="hero-eyebrow">BRM Academic Research · 2025</div>
+  <h1>Coffee Consumption &<br><em>Consumer Behaviour</em></h1>
+  <p>A short academic study on how coffee shapes our daily lives. Your honest responses take just 5–7 minutes and make a real difference.</p>
+  <div class="hero-divider"><span>Scroll to begin</span></div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress">
+  <div class="progress-steps" id="pDots"></div>
+  <span class="p-label" id="pLabel">Step 1 of 4</span>
+  <div class="p-bar-track"><div class="p-bar-fill" id="pBar"></div></div>
+  <span class="p-pct" id="pPct">0%</span>
+</div>
+
+<div class="wrap">
+
+<!-- ════════════════ STEP 1 ════════════════ -->
+<div class="step active" id="step1">
+  <div class="s-eyebrow">Section A</div>
+  <div class="s-title">About You</div>
+  <div class="s-sub">Basic information to help us understand the diversity of coffee consumers. All fields marked * are required.</div>
+
+  <div class="card">
+    <div class="card-label">Personal Details</div>
+    <div class="g2">
+      <div class="field"><label class="fl">Full Name *</label><input class="fi" id="q_name" placeholder="Your full name" oninput="sync('q_name',this.value)"></div>
+      <div class="field"><label class="fl">Email Address *</label><input class="fi" id="q_email" type="email" placeholder="you@email.com" oninput="sync('q_email',this.value)"></div>
+      <div class="field"><label class="fl">Contact / Phone</label><input class="fi" id="q_contact" placeholder="Optional" oninput="sync('q_contact',this.value)"></div>
+      <div class="field"><label class="fl">WhatsApp Number <span style="color:var(--caramel);font-size:11px;">(for soft copy)</span></label><input class="fi" id="q_whatsapp" type="tel" placeholder="e.g. +91 98765 43210" oninput="sync('q_whatsapp',this.value)"></div>
+      <div class="field"><label class="fl">Age *</label><input class="fi" id="q_age" type="number" min="10" max="99" placeholder="e.g. 22" oninput="sync('q_age',this.value)"></div>
+      <div class="field"><label class="fl">Gender *</label><input class="fi" id="q_gender" placeholder="Male / Female / Other" oninput="sync('q_gender',this.value)"></div>
+      <div class="field"><label class="fl">Education Level</label><input class="fi" id="q_edu" placeholder="e.g. Undergraduate" oninput="sync('q_edu',this.value)"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Occupation *</div>
+    <div class="opt-grid" id="grp_occ">
+      <button class="opt" onclick="pick('grp_occ',this,'q_occ','Student')"><span class="bub"></span>Student</button>
+      <button class="opt" onclick="pick('grp_occ',this,'q_occ','Self-employed')"><span class="bub"></span>Self-employed</button>
+      <button class="opt" onclick="pick('grp_occ',this,'q_occ','Working Professional')"><span class="bub"></span>Working Professional</button>
+      <button class="opt" onclick="pick('grp_occ',this,'q_occ','Other')"><span class="bub"></span>Other</button>
+    </div>
+    <input type="hidden" id="q_occ">
+  </div>
+
+  <div class="card">
+    <div class="card-label">Monthly Personal Income</div>
+    <div class="opt-grid" id="grp_inc">
+      <button class="opt" onclick="pick('grp_inc',this,'q_income','No income')"><span class="bub"></span>No income</button>
+      <button class="opt" onclick="pick('grp_inc',this,'q_income','Below ₹15,000')"><span class="bub"></span>Below ₹15,000</button>
+      <button class="opt" onclick="pick('grp_inc',this,'q_income','₹15,001–₹30,000')"><span class="bub"></span>₹15,001–₹30,000</button>
+      <button class="opt" onclick="pick('grp_inc',this,'q_income','₹30,001–₹50,000')"><span class="bub"></span>₹30,001–₹50,000</button>
+      <button class="opt" onclick="pick('grp_inc',this,'q_income','Above ₹50,000')"><span class="bub"></span>Above ₹50,000</button>
+    </div>
+    <input type="hidden" id="q_income">
+  </div>
+
+  <div class="card">
+    <div class="card-label">Coffee Drinking *</div>
+    <div class="yn">
+      <button class="yn-btn" id="yn_yes" onclick="yesno('yes')">☕ Yes, I drink coffee</button>
+      <button class="yn-btn" id="yn_no" onclick="yesno('no')">✕ No, I don't</button>
+    </div>
+    <input type="hidden" id="q_drinks">
+    <div id="freqWrap" style="display:none;margin-top:1.25rem;">
+      <div class="card-label" style="margin-bottom:10px;">How often?</div>
+      <div class="opt-grid" id="grp_freq">
+        <button class="opt" onclick="pick('grp_freq',this,'q_freq','Several times a day')"><span class="bub"></span>Several times a day</button>
+        <button class="opt" onclick="pick('grp_freq',this,'q_freq','Once a day')"><span class="bub"></span>Once a day</button>
+        <button class="opt" onclick="pick('grp_freq',this,'q_freq','Several times a week')"><span class="bub"></span>Several times a week</button>
+        <button class="opt" onclick="pick('grp_freq',this,'q_freq','Once a week')"><span class="bub"></span>Once a week</button>
+        <button class="opt" onclick="pick('grp_freq',this,'q_freq','Less than once a week')"><span class="bub"></span>Less than once a week</button>
+      </div>
+      <input type="hidden" id="q_freq">
+    </div>
+  </div>
+
+  <div class="nav"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
+</div>
+
+<!-- ════════════════ STEP 2 ════════════════ -->
+<div class="step" id="step2">
+  <div class="s-eyebrow">Section B</div>
+  <div class="s-title">Coffee Consumption Frequency</div>
+  <div class="s-sub">Rate how strongly you agree or disagree with each statement.</div>
+
+  <div class="card">
+    <div class="card-label">Health Perception</div>
+    <div style="overflow-x:auto"><table class="lk"><thead><tr>
+      <th style="min-width:180px;text-align:left">Statement</th>
+      <th>Strongly<br>Agree</th><th>Agree</th><th>Neutral</th><th>Disagree</th><th>Strongly<br>Disagree</th>
+    </tr></thead><tbody id="tb_health"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Habit</div>
+    <div style="overflow-x:auto"><table class="lk"><thead><tr>
+      <th style="min-width:180px;text-align:left">Statement</th>
+      <th>Strongly<br>Agree</th><th>Agree</th><th>Neutral</th><th>Disagree</th><th>Strongly<br>Disagree</th>
+    </tr></thead><tbody id="tb_habit"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Lifestyle</div>
+    <div style="overflow-x:auto"><table class="lk"><thead><tr>
+      <th style="min-width:180px;text-align:left">Statement</th>
+      <th>Strongly<br>Agree</th><th>Agree</th><th>Neutral</th><th>Disagree</th><th>Strongly<br>Disagree</th>
+    </tr></thead><tbody id="tb_lifestyle"></tbody></table></div>
+  </div>
+
+  <div class="nav">
+    <button class="btn-back" onclick="go(1)">← Back</button>
+    <button class="btn-next" onclick="go(3)">Continue →</button>
+  </div>
+</div>
+
+<!-- ════════════════ STEP 3 ════════════════ -->
+<div class="step" id="step3">
+  <div class="s-eyebrow">Section C</div>
+  <div class="s-title">Customer Preference</div>
+  <div class="s-sub">Share your preferences when choosing coffee products.</div>
+
+  <div class="card">
+    <div class="card-label">Flavour</div>
+    <div style="overflow-x:auto"><table class="lk"><thead><tr>
+      <th style="min-width:180px;text-align:left">Statement</th>
+      <th>Strongly<br>Agree</th><th>Agree</th><th>Neutral</th><th>Disagree</th><th>Strongly<br>Disagree</th>
+    </tr></thead><tbody id="tb_flavour"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Packaging</div>
+    <div style="overflow-x:auto"><table class="lk"><thead><tr>
+      <th style="min-width:180px;text-align:left">Statement</th>
+      <th>Strongly<br>Agree</th><th>Agree</th><th>Neutral</th><th>Disagree</th><th>Strongly<br>Disagree</th>
+    </tr></thead><tbody id="tb_pack"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Price</div>
+    <div style="overflow-x:auto"><table class="lk"><thead><tr>
+      <th style="min-width:180px;text-align:left">Statement</th>
+      <th>Strongly<br>Agree</th><th>Agree</th><th>Neutral</th><th>Disagree</th><th>Strongly<br>Disagree</th>
+    </tr></thead><tbody id="tb_price"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Brand Preference</div>
+    <div style="overflow-x:auto"><table class="lk"><thead><tr>
+      <th style="min-width:180px;text-align:left">Statement</th>
+      <th>Strongly<br>Agree</th><th>Agree</th><th>Neutral</th><th>Disagree</th><th>Strongly<br>Disagree</th>
+    </tr></thead><tbody id="tb_brand"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Product Availability</div>
+    <div style="overflow-x:auto"><table class="lk"><thead><tr>
+      <th style="min-width:180px;text-align:left">Statement</th>
+      <th>Strongly<br>Agree</th><th>Agree</th><th>Neutral</th><th>Disagree</th><th>Strongly<br>Disagree</th>
+    </tr></thead><tbody id="tb_avail"></tbody></table></div>
+  </div>
+
+  <div class="nav">
+    <button class="btn-back" onclick="go(2)">← Back</button>
+    <button class="btn-next" onclick="go(4)">Review & Submit →</button>
+  </div>
+</div>
+
+<!-- ════════════════ STEP 4 — REVIEW ════════════════ -->
+<div class="step" id="step4">
+  <div class="s-eyebrow">Final Step</div>
+  <div class="s-title">Review Your Responses</div>
+  <div class="s-sub">Please check your answers before submitting. A copy will be emailed to you.</div>
+  <div class="card" id="reviewBox"></div>
+  <div class="nav">
+    <button class="btn-back" onclick="go(3)">← Back</button>
+    <button class="btn-next" id="submitBtn" onclick="submit()">
+      <span id="submitLabel">Submit Responses</span>
+      <span id="submitIcon">✓</span>
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════ SUCCESS ════════════════ -->
+<div class="step" id="stepDone">
+  <div class="success">
+    <div class="s-ring">✓</div>
+    <h2>Submitted!</h2>
+    <p>Thank you for your time and honest responses. Your participation contributes meaningfully to this research.</p>
+    <div id="successEmailChip" class="s-email-chip">📧 Copy sent to your email</div>
+    <p id="successNote" style="font-size:13px;margin-bottom:1.5rem;"></p>
+    <div class="success-actions">
+      <a id="waBtn" class="s-btn s-btn-wa" href="#" target="_blank" style="display:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.851L.057 23.993l6.305-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.375l-.36-.214-3.724.977.995-3.63-.235-.374A9.818 9.818 0 1112 21.818z"/></svg>
+        Send Copy to WhatsApp
+      </a>
+      <button class="s-btn s-btn-ghost" onclick="window.location.reload()">Fill Again</button>
+    </div>
+    <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(92,45,14,0.1);">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:0.75rem;">Are you the researcher? Download all collected responses:</p>
+      <button class="s-btn s-btn-primary" onclick="downloadExcel()" style="margin:0 auto;">
+        ⬇ Download All Responses (Excel)
+      </button>
+    </div>
+    <p class="wa-note" id="waNoteText"></p>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<div class="form-footer">BRM Research · Confidential · Responses are used for academic purposes only</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIG — HARDCODED (paste your values here)
+// ═══════════════════════════════════════════
+const CFG = {
+  sheet: 'PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE',
+  svc:   'PASTE_YOUR_EMAILJS_SERVICE_ID_HERE',
+  tpl:   'PASTE_YOUR_EMAILJS_TEMPLATE_ID_HERE',
+  key:   'PASTE_YOUR_EMAILJS_PUBLIC_KEY_HERE'
+};
+try{ emailjs.init(CFG.key); }catch(e){}
+
+// ═══════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════
+const R = {}; // all responses stored here
+
+function sync(key,val){ R[key]=val; }
+
+const SCALE = ['Strongly Agree','Agree','Neutral','Disagree','Strongly Disagree'];
+
+const QS = {
+  health:[
+    "Drinking coffee helps me feel more energetic.",
+    "Coffee helps me stay alert and focused.",
+    "I believe coffee has health benefits."
+  ],
+  habit:[
+    "Drinking coffee is part of my daily routine.",
+    "I drink coffee automatically without thinking about it.",
+    "I feel something is missing if I do not drink coffee."
+  ],
+  lifestyle:[
+    "Coffee consumption fits well with my lifestyle.",
+    "I drink coffee when socializing with friends.",
+    "Coffee is part of my daily activities.",
+    "Visiting coffee shops is a part of my leisure activities.",
+    "Coffee consumption reflects my personal lifestyle preferences."
+  ],
+  flavour:[
+    "The taste of coffee is important when I choose which coffee to buy.",
+    "I prefer coffee with a rich aroma and flavour.",
+    "I choose coffee mainly because I enjoy its taste."
+  ],
+  pack:[
+    "Attractive packaging influences my choice of coffee.",
+    "Packaging helps me identify good-quality coffee products.",
+    "I prefer coffee brands with appealing packaging."
+  ],
+  price:[
+    "Price influences my decision when buying coffee.",
+    "I compare prices before choosing coffee products.",
+    "I prefer coffee that offers good value for money."
+  ],
+  brand:[
+    "When buying coffee, the brand name is important to me.",
+    "When I buy coffee, I consider the brand before making my purchase decision.",
+    "I usually repurchase the same coffee brand if I am satisfied with it."
+  ],
+  avail:[
+    "Coffee products are easily available in nearby stores or cafés.",
+    "I prefer to buy coffee brands that are easily available in my area.",
+    "If my preferred coffee brand is not available, I switch to another brand."
+  ]
+};
+
+// Build Likert tables
+function buildTable(tbodyId, group){
+  const tbody = document.getElementById(tbodyId);
+  QS[group].forEach((q,i)=>{
+    const key = group+'_'+i;
+    const tr = document.createElement('tr');
+    let html = `<td>${q}</td>`;
+    SCALE.forEach(s=>{
+      html+=`<td><input type="radio" class="lk" name="${key}" value="${s}"
+        onchange="R['${key}']='${s}'"></td>`;
+    });
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+}
+
+['health','habit','lifestyle'].forEach(g=>buildTable('tb_'+g,g));
+['flavour','pack','price','brand','avail'].forEach(g=>buildTable('tb_'+g,g));
+
+// ═══════════════════════════════════════════
+//  PROGRESS DOTS
+// ═══════════════════════════════════════════
+const TOTAL=4;
+const pDots=document.getElementById('pDots');
+for(let i=1;i<=TOTAL;i++){
+  const d=document.createElement('div');
+  d.className='p-dot'+(i===1?' active':'');
+  d.id='pd'+i;
+  pDots.appendChild(d);
+}
+
+function updateProgress(n){
+  for(let i=1;i<=TOTAL;i++){
+    const d=document.getElementById('pd'+i);
+    d.className='p-dot'+(i<n?'done':i===n?'active':'');
+  }
+  const pct=Math.round(((n-1)/TOTAL)*100);
+  document.getElementById('pBar').style.width=pct+'%';
+  document.getElementById('pLabel').textContent='Step '+Math.min(n,TOTAL)+' of '+TOTAL;
+  document.getElementById('pPct').textContent=pct+'%';
+}
+
+// ═══════════════════════════════════════════
+//  INTERACTIONS
+// ═══════════════════════════════════════════
+function pick(grpId,btn,hiddenId,val){
+  document.querySelectorAll('#'+grpId+' .opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  document.getElementById(hiddenId).value=val;
+  R[hiddenId]=val;
+}
+
+function yesno(v){
+  R['q_drinks']=v;
+  document.getElementById('q_drinks').value=v;
+  document.getElementById('yn_yes').className='yn-btn'+(v==='yes'?' yn-yes':'');
+  document.getElementById('yn_no').className='yn-btn'+(v==='no'?' yn-no':'');
+  document.getElementById('freqWrap').style.display=v==='yes'?'block':'none';
+}
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+let cur=1;
+function go(n){
+  if(n>cur && !validate(cur)) return;
+  if(n===4) buildReview();
+  document.getElementById(cur<=4?'step'+cur:'stepDone').classList.remove('active');
+  cur=n;
+  document.getElementById('step'+cur).classList.add('active');
+  updateProgress(cur);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════
+//  VALIDATION
+// ═══════════════════════════════════════════
+function validate(step){
+  if(step===1){
+    const name=document.getElementById('q_name').value.trim();
+    const email=document.getElementById('q_email').value.trim();
+    const age=document.getElementById('q_age').value.trim();
+    const occ=R['q_occ']||'';
+    const drinks=R['q_drinks']||'';
+    const gender=document.getElementById('q_gender').value.trim();
+    if(!name){showToast('Please enter your name.','e');return false;}
+    if(!email||!email.includes('@')){showToast('Please enter a valid email address.','e');return false;}
+    if(!age){showToast('Please enter your age.','e');return false;}
+    if(!gender){showToast('Please enter your gender.','e');return false;}
+    if(!occ){showToast('Please select your occupation.','e');return false;}
+    if(!drinks){showToast('Please indicate whether you drink coffee.','e');return false;}
+    R['q_name']=name; R['q_email']=email; R['q_age']=age;
+    R['q_gender']=gender;
+    R['q_edu']=document.getElementById('q_edu').value;
+    R['q_contact']=document.getElementById('q_contact').value;
+    R['q_whatsapp']=document.getElementById('q_whatsapp').value;
+  }
+  return true;
+}
+
+// ═══════════════════════════════════════════
+//  REVIEW
+// ═══════════════════════════════════════════
+const tagClass={'Strongly Agree':'rv-sa','Agree':'rv-a','Neutral':'rv-n','Disagree':'rv-d','Strongly Disagree':'rv-sd'};
+
+function buildReview(){
+  const box=document.getElementById('reviewBox');
+  let h='';
+
+  // Demographics
+  h+=`<div class="rv-section"><div class="rv-head">Section A — Personal Details</div>`;
+  [['Name',R.q_name||'—'],['Email',R.q_email||'—'],['Contact',R.q_contact||'—'],['WhatsApp',R.q_whatsapp||'—'],
+   ['Age',R.q_age||'—'],['Gender',R.q_gender||'—'],['Education',R.q_edu||'—'],
+   ['Occupation',R.q_occ||'—'],['Income',R.q_income||'—'],
+   ['Drinks Coffee',R.q_drinks==='yes'?'Yes':'No'],
+   ['Frequency',R.q_freq||'—']
+  ].forEach(([k,v])=>{
+    h+=`<div class="rv-row"><span class="rv-key">${k}</span><span class="rv-val">${v}</span></div>`;
+  });
+  h+=`</div>`;
+
+  // Likert
+  h+=`<div class="rv-section"><div class="rv-head">Section B & C — Scale Responses</div>`;
+  Object.entries(QS).forEach(([group,qs])=>{
+    h+=`<div style="margin-bottom:1rem;"><div style="font-size:11px;font-weight:600;color:var(--caramel);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">${group}</div>`;
+    qs.forEach((q,i)=>{
+      const ans=R[group+'_'+i]||'';
+      const cls=tagClass[ans]||'rv-n';
+      h+=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(92,45,14,0.05);font-size:13px;">
+        <span style="color:var(--ink);flex:1;line-height:1.4">${q}</span>
+        <span class="rv-tag ${cls}">${ans||'—'}</span>
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+  h+=`</div>`;
+
+  box.innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+//  SUBMIT
+// ═══════════════════════════════════════════
+async function submit(){
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;
+  document.getElementById('submitLabel').textContent='Submitting…';
+  document.getElementById('submitIcon').innerHTML='<span class="spinner"></span>';
+
+  let sheetOk=false, emailOk=false;
+
+  // 1. Send to Google Sheets
+  if(CFG.sheet){
+    try{
+      const flat=flattenData();
+      await fetch(CFG.sheet,{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(flat)
+      });
+      sheetOk=true;
+    }catch(e){ console.warn('Sheet error',e); }
+  }
+
+  // 2. Send email to respondent
+  if(CFG.svc && CFG.tpl && CFG.key){
+    try{
+      await emailjs.send(CFG.svc, CFG.tpl, {
+        to_name: R.q_name,
+        to_email: R.q_email,
+        from_name: 'BRM Research Team',
+        reply_to: R.q_email,
+        message: buildEmailBody()
+      });
+      emailOk=true;
+    }catch(e){ console.warn('Email error',e); }
+  }
+
+  // Show success
+  document.getElementById('step4').classList.remove('active');
+  document.getElementById('stepDone').classList.add('active');
+  document.getElementById('pBar').style.width='100%';
+  document.getElementById('pPct').textContent='100%';
+  document.getElementById('pLabel').textContent='Complete!';
+  for(let i=1;i<=TOTAL;i++) document.getElementById('pd'+i).className='p-dot done';
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Personalise success message
+  const chip=document.getElementById('successEmailChip');
+  const note=document.getElementById('successNote');
+  if(emailOk){
+    chip.textContent='📧 Copy sent to '+R.q_email;
+  } else {
+    chip.style.display='none';
+  }
+  if(!CFG.sheet && !CFG.svc){
+    note.textContent='(Note: Researcher backend not configured — data was not transmitted remotely. If you are the researcher, please set up Google Sheets and EmailJS.)';
+    note.style.color='var(--err)';
+  } else {
+    note.textContent= sheetOk
+      ? '✓ Your response has been recorded in the researcher\'s database.'
+      : '⚠ There was a connectivity issue saving to the database. Please inform the researcher.';
+  }
+
+  // WhatsApp button
+  const waNum = (R.q_whatsapp||'').replace(/\D/g,'');
+  const waBtn = document.getElementById('waBtn');
+  const waNoteText = document.getElementById('waNoteText');
+  if(waNum.length >= 10){
+    const waText = buildWhatsAppText();
+    const waUrl = 'https://wa.me/'+waNum+'?text='+encodeURIComponent(waText);
+    waBtn.href = waUrl;
+    waBtn.style.display = 'inline-flex';
+    waNoteText.textContent = 'Tap the button above to open WhatsApp and send yourself a copy of your responses.';
+  }
+
+}
+
+// ═══════════════════════════════════════════
+//  WHATSAPP MESSAGE TEXT
+// ═══════════════════════════════════════════
+function buildWhatsAppText(){
+  let t=`☕ *BRM Coffee Research — My Response Copy*\n\n`;
+  t+=`*Name:* ${R.q_name}\n*Age:* ${R.q_age} | *Gender:* ${R.q_gender||'—'}\n`;
+  t+=`*Occupation:* ${R.q_occ||'—'} | *Income:* ${R.q_income||'—'}\n`;
+  t+=`*Drinks Coffee:* ${R.q_drinks==='yes'?'Yes':'No'} | *Frequency:* ${R.q_freq||'—'}\n\n`;
+  t+=`*── Scale Responses ──*\n`;
+  Object.entries(QS).forEach(([group,qs])=>{
+    t+=`\n*${group.toUpperCase()}*\n`;
+    qs.forEach((q,i)=>{ t+=`• ${q.substring(0,50)}…\n  → ${R[group+'_'+i]||'—'}\n`; });
+  });
+  t+=`\n_Submitted: ${new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})}_`;
+  return t;
+}
+
+// ═══════════════════════════════════════════
+//  FLATTEN DATA FOR GOOGLE SHEETS
+// ═══════════════════════════════════════════
+function flattenData(){
+  const row={
+    timestamp: new Date().toISOString(),
+    name: R.q_name||'',
+    email: R.q_email||'',
+    contact: R.q_contact||'',
+    whatsapp: R.q_whatsapp||'',
+    age: R.q_age||'',
+    gender: R.q_gender||'',
+    education: R.q_edu||'',
+    occupation: R.q_occ||'',
+    income: R.q_income||'',
+    drinks_coffee: R.q_drinks||'',
+    frequency: R.q_freq||''
+  };
+  Object.entries(QS).forEach(([group,qs])=>{
+    qs.forEach((q,i)=>{ row[group+'_q'+(i+1)]=R[group+'_'+i]||''; });
+  });
+  // Save to local storage for researcher Excel export
+  try{
+    const all=JSON.parse(localStorage.getItem('brm_all_responses')||'[]');
+    all.push(row);
+    localStorage.setItem('brm_all_responses',JSON.stringify(all));
+  }catch(e){}
+  return row;
+}
+
+// ═══════════════════════════════════════════
+//  EMAIL BODY
+// ═══════════════════════════════════════════
+function buildEmailBody(){
+  let t=`Dear ${R.q_name},\n\nThank you for participating in our Coffee Consumption & Consumer Behaviour study.\n\nHere is a copy of your responses:\n\n`;
+  t+=`── SECTION A: DEMOGRAPHICS ──────────────────\n`;
+  t+=`Name: ${R.q_name}\nEmail: ${R.q_email}\nAge: ${R.q_age}\nGender: ${R.q_gender||'—'}\n`;
+  t+=`Education: ${R.q_edu||'—'}\nOccupation: ${R.q_occ||'—'}\nIncome: ${R.q_income||'—'}\n`;
+  t+=`Drinks Coffee: ${R.q_drinks==='yes'?'Yes':'No'}\nFrequency: ${R.q_freq||'—'}\n\n`;
+  t+=`── SECTION B & C: SCALE RESPONSES ──────────\n`;
+  Object.entries(QS).forEach(([group,qs])=>{
+    t+=`\n[${group.toUpperCase()}]\n`;
+    qs.forEach((q,i)=>{ t+=`• ${q}\n  → ${R[group+'_'+i]||'Not answered'}\n`; });
+  });
+  t+=`\n──────────────────────────────────────────────\nSubmitted: ${new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})}\n\nWarm regards,\nBRM Research Team`;
+  return t;
+}
+
+
+// ═══════════════════════════════════════════
+//  DOWNLOAD ALL RESPONSES AS EXCEL
+// ═══════════════════════════════════════════
+function downloadExcel(){
+  try{
+    const all = JSON.parse(localStorage.getItem('brm_all_responses')||'[]');
+    if(!all.length){
+      showToast('No responses saved on this device yet.','e');
+      return;
+    }
+    const ws = XLSX.utils.json_to_sheet(all);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'BRM Responses');
+    const cols = Object.keys(all[0]).map(k=>({wch:Math.max(k.length,18)}));
+    ws['!cols'] = cols;
+    XLSX.writeFile(wb, 'BRM_Coffee_Research_Responses.xlsx');
+  }catch(e){
+    showToast('Excel download requires XLSX library. Check your internet connection.','e');
+  }
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function showToast(msg,type='i'){
+  clearTimeout(toastTimer);
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast '+type+' show';
+  toastTimer=setTimeout(()=>el.classList.remove('show'),3800);
+}
+</script>
+</body>
+</html>
