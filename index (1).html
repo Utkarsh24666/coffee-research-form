@@ -996,12 +996,22 @@ function flattenData(){
     qs.forEach((q,i)=>{ row[group+'_q'+(i+1)]=R[group+'_'+i]||''; });
   });
   // Save to local storage for researcher Excel export
-  try{
-    const all=JSON.parse(localStorage.getItem('brm_all_responses')||'[]');
-    all.push(row);
-    localStorage.setItem('brm_all_responses',JSON.stringify(all));
-  }catch(e){}
-  return row;
+  try {
+  const data = buildFlatData();
+
+  await fetch("https://script.google.com/macros/s/AKfycbzQjXSB-qx1jgVSkayMPepODiUpENKEXbPQVKjX-GnpODNjGtjeMcL2D3J-RNi0R9LH/exec", {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+
+  console.log("Data sent to Google Sheets");
+
+} catch (error) {
+  console.error("Error sending data:", error);
 }
 
 // ═══════════════════════════════════════════
